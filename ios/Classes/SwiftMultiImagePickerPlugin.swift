@@ -79,60 +79,27 @@ public class SwiftMultiImagePickerPlugin: NSObject, FlutterPlugin {
             let selectedAssets = arguments["selectedAssets"] as! Array<String>
             var totalImagesSelected = 0
             
-            vc.maxNumberOfSelections = maxImages
-
-            if (enableCamera) {
-                vc.takePhotos = true
-            }
-            
-            if selectedAssets.count > 0 {
-                let assets: PHFetchResult = PHAsset.fetchAssets(withLocalIdentifiers: selectedAssets, options: nil)
-                vc.defaultSelections = assets
-            }
-
-            if let takePhotoIcon = options["takePhotoIcon"] {
-                if (!takePhotoIcon.isEmpty) {
-                    vc.takePhotoIcon = UIImage(named: takePhotoIcon)
-                }
-            }
+            vc.settings.selection.max = maxImages
 
             if let backgroundColor = options["backgroundColor"] {
                 if (!backgroundColor.isEmpty) {
-                    vc.backgroundColor = hexStringToUIColor(hex: backgroundColor)
+                    vc.settings.theme.backgroundColor = hexStringToUIColor(hex: backgroundColor)
                 }
             }
 
             if let selectionFillColor = options["selectionFillColor"] {
                 if (!selectionFillColor.isEmpty) {
-                    vc.selectionFillColor = hexStringToUIColor(hex: selectionFillColor)
+                    vc.settings.theme.selectionFillColor = hexStringToUIColor(hex: selectionFillColor)
                 }
             }
 
             if let selectionShadowColor = options["selectionShadowColor"] {
                 if (!selectionShadowColor.isEmpty) {
-                    vc.selectionShadowColor = hexStringToUIColor(hex: selectionShadowColor)
+                    vc.settings.theme.selectionShadowColor = hexStringToUIColor(hex: selectionShadowColor)
                 }
             }
 
-            if let selectionStrokeColor = options["selectionStrokeColor"] {
-                if (!selectionStrokeColor.isEmpty) {
-                    vc.selectionStrokeColor = hexStringToUIColor(hex: selectionStrokeColor)
-                }
-            }
-
-            if let selectionTextColor = options["selectionTextColor"] {
-                if (!selectionTextColor.isEmpty) {
-                    vc.selectionTextAttributes[NSAttributedString.Key.foregroundColor] = hexStringToUIColor(hex: selectionTextColor)
-                }
-            }
-
-            if let selectionCharacter = options["selectionCharacter"] {
-                if (!selectionCharacter.isEmpty) {
-                    vc.selectionCharacter = Character(selectionCharacter)
-                }
-            }
-            
-            presentImagePicker(imagePicker, select: { (asset) in
+            controller.presentImagePicker(vc, select: { (asset) in
                 totalImagesSelected += 1                    
                 if let autoCloseOnSelectionLimit = options["autoCloseOnSelectionLimit"] {
                     if (!autoCloseOnSelectionLimit.isEmpty && autoCloseOnSelectionLimit == "true") {
