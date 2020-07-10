@@ -66,7 +66,7 @@ public class SwiftMultiImagePickerPlugin: NSObject, FlutterPlugin {
                 return result(FlutterError(code: "PERMISSION_PERMANENTLY_DENIED", message: "The user has denied the gallery access.", details: nil))
             }
             
-            let vc = BSImagePickerViewController()
+            let vc = ImagePickerController()
             
             if #available(iOS 13.0, *) {
                 // Disables iOS 13 swipe to dismiss - to force user to press cancel or done.
@@ -131,34 +131,33 @@ public class SwiftMultiImagePickerPlugin: NSObject, FlutterPlugin {
                     vc.selectionCharacter = Character(selectionCharacter)
                 }
             }
-
-            controller!.bs_presentImagePickerController(vc, animated: true,
-                select: { (asset: PHAsset) -> Void in
-                    totalImagesSelected += 1
-                    
-                    if let autoCloseOnSelectionLimit = options["autoCloseOnSelectionLimit"] {
-                        if (!autoCloseOnSelectionLimit.isEmpty && autoCloseOnSelectionLimit == "true") {
-                            if (maxImages == totalImagesSelected) {
-                                UIApplication.shared.sendAction(vc.doneButton.action!, to: vc.doneButton.target, from: self, for: nil)
-                            }
+            
+            presentImagePicker(imagePicker, select: { (asset) in
+                totalImagesSelected += 1                    
+                if let autoCloseOnSelectionLimit = options["autoCloseOnSelectionLimit"] {
+                    if (!autoCloseOnSelectionLimit.isEmpty && autoCloseOnSelectionLimit == "true") {
+                        if (maxImages == totalImagesSelected) {
+                            UIApplication.shared.sendAction(vc.doneButton.action!, to: vc.doneButton.target, from: self, for: nil)
                         }
                     }
-                }, deselect: { (asset: PHAsset) -> Void in
-                    totalImagesSelected -= 1
-                }, cancel: { (assets: [PHAsset]) -> Void in
-                    result(FlutterError(code: "CANCELLED", message: "The user has cancelled the selection", details: nil))
-                }, finish: { (assets: [PHAsset]) -> Void in
-                    var results = [NSDictionary]();
-                    for asset in assets {
-                        results.append([
-                            "identifier": asset.localIdentifier,
-                            "width": asset.pixelWidth,
-                            "height": asset.pixelHeight,
-                            "name": asset.originalFilename!
-                        ]);
-                    }
-                    result(results);
-                }, completion: nil)
+                }
+                      
+            }, deselect: { (asset) in
+                totalImagesSelected -= 1
+            }, cancel: { (assets) in
+                result(FlutterError(code: "CANCELLED", message: "The user has cancelled the selection", details: nil))
+            }, finish: { (assets) in
+                var results = [NSDictionary]();
+                for asset in assets {
+                    results.append([
+                        "identifier": asset.localIdentifier,
+                        "width": asset.pixelWidth,
+                        "height": asset.pixelHeight,
+                        "name": asset.originalFilename!
+                    ]);
+                }
+                result(results);
+            })
             break;
         case "requestThumbnail":
             let arguments = call.arguments as! Dictionary<String, AnyObject>
